@@ -14,6 +14,23 @@ import (
 // 	NotUsed string `csv:"-"`
 // }
 
+func stripCharsAndTitle(s string, h string) string {
+	for i := strings.Index(s, h); i > 0; i = strings.Index(s, h) {
+		s = s[:i] + "" + strings.Title(s[i+1:])
+	}
+
+	return s
+}
+
+func formatText(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.Title(s)
+	s = stripCharsAndTitle(s, "_")
+	s = stripCharsAndTitle(s, "-")
+
+	return s
+}
+
 func main() {
 	file, _ := os.Open("test.csv")
 

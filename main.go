@@ -9,15 +9,20 @@ import (
 )
 
 func stripCharsAndTitle(s string, h string) string {
+	i := strings.LastIndex(s, "/")
+
+	if i != -1 {
+		s = s[i+1:]
+	}
+
 	for i := strings.Index(s, h); i > 0; i = strings.Index(s, h) {
 		s = s[:i] + "" + strings.Title(s[i+1:])
 	}
-
 	return s
 }
 
 func formatText(s string) string {
-	s = strings.TrimSpace(s)
+	s = strings.Replace(s, " ", "", -1)
 	s = strings.Title(s)
 	s = stripCharsAndTitle(s, "_")
 	s = stripCharsAndTitle(s, "-")
@@ -25,10 +30,8 @@ func formatText(s string) string {
 	return s
 }
 
-func main() {
-	argsWithProg := os.Args
-
-	file, err := os.Open(argsWithProg[1])
+func processCSV(filePath string) string {
+	file, err := os.Open(filePath)
 
 	if err != nil {
 		log.Panic("CSV not found.")
@@ -37,8 +40,8 @@ func main() {
 	reader := csv.NewReader(file)
 	header, _ := reader.Read()
 
-	structName := formatText(strings.Replace(argsWithProg[1], ".csv", "", -1))
-	structString := fmt.Sprintf("type %s struct { \n", structName)
+	structName := formatText(strings.Replace(filePath, ".csv", "", -1))
+	structString := fmt.Sprintf("type %s struct {\n", structName)
 
 	maxChars := 0
 
@@ -52,7 +55,7 @@ func main() {
 
 	for _, h := range header {
 		if len(h) == maxChars {
-			structString += fmt.Sprintf("\t%s string `csv:\"%s\"` \n", h, h)
+			structString += fmt.Sprintf("\t%s string `csv:\"%s\"`\n", h, h)
 		} else {
 			padding := ""
 
@@ -60,11 +63,19 @@ func main() {
 				padding += " "
 			}
 
-			structString += fmt.Sprintf("\t%s %s string `csv:\"%s\"` \n", h, padding, h)
+			structString += fmt.Sprintf("\t%s %s string `csv:\"%s\"`\n", h, padding, h)
 		}
 	}
 
 	structString += "}"
 
-	fmt.Println(structString)
+	return structString
+}
+
+func main() {
+	argsWithProg := os.Args
+
+	s := processCSV(argsWithProg[1])
+
+	fmt.Println(s)
 }

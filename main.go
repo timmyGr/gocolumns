@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-// func replaceAtIndex(in string, r rune, i int) string {
-// 	out := []rune(in)
-// 	out[i] = r
-// 	return string(out)
-// }
-
 func stripCharsAndTitle(s string, h string) string {
 	for i := strings.Index(s, h); i > 0; i = strings.Index(s, h) {
 		s = s[:i] + "" + strings.Title(s[i+1:])

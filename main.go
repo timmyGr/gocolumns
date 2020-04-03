@@ -3,15 +3,15 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
-// type Client struct {
-// 	Id      string `csv:"client_id"`
-// 	Name    string `csv:"client_name"`
-// 	Age     string `csv:"client_age"`
-// 	NotUsed string `csv:"-"`
+// func replaceAtIndex(in string, r rune, i int) string {
+// 	out := []rune(in)
+// 	out[i] = r
+// 	return string(out)
 // }
 
 func stripCharsAndTitle(s string, h string) string {
@@ -32,38 +32,41 @@ func formatText(s string) string {
 }
 
 func main() {
-	file, _ := os.Open("test.csv")
+	argsWithProg := os.Args
+
+	file, err := os.Open(argsWithProg[1])
+
+	if err != nil {
+		log.Panic("CSV not found.")
+	}
 
 	reader := csv.NewReader(file)
 	header, _ := reader.Read()
 
-	structString := "type YourCSV struct { \n"
-	_ = structString
+	structName := formatText(strings.Replace(argsWithProg[1], ".csv", "", -1))
+	structString := fmt.Sprintf("type %s struct { \n", structName)
 
-	colSlice := make([]string, 0)
 	maxChars := 0
 
-	for _, h := range header {
-		t := strings.ToTitle(strings.TrimSpace(h))
-		colSlice = append(colSlice, t)
-		// colSlice = append(colSlice, fmt.Sprintf("\t%s string `csv:\"%s\"` \n", t, t))
+	for i, h := range header {
+		header[i] = formatText(h)
 
-		if len(t) > maxChars {
-			maxChars = len(t)
+		if len(header[i]) > maxChars {
+			maxChars = len(header[i])
 		}
 	}
 
-	for _, h := range colSlice {
+	for _, h := range header {
 		if len(h) == maxChars {
 			structString += fmt.Sprintf("\t%s string `csv:\"%s\"` \n", h, h)
 		} else {
 			padding := ""
 
-			for i := 0; i < maxChars-len(h); i++ {
+			for i := 0; i < maxChars-len(h)-1; i++ {
 				padding += " "
 			}
 
-			structString += fmt.Sprintf("\t%s %sstring `csv:\"%s\"` \n", h, padding, h)
+			structString += fmt.Sprintf("\t%s %s string `csv:\"%s\"` \n", h, padding, h)
 		}
 	}
 
